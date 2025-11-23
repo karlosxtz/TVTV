@@ -4,10 +4,13 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# TOKEN DO SEU BOT JÁ COLOCADO
+# TOKEN DO SEU BOT
 TELEGRAM_TOKEN = "8333600201:AAGXsPe3ilm8bwSwu8Rws5Lw6wtUZJ0mAD4"
+
+# API IPTV
 API_URL = "https://fireplay.paneltop.online/api/chatbot/OALyoolW4w/ryJDzKWgeV"
 
+# URL base do Telegram
 BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/"
 
 
@@ -39,8 +42,9 @@ def webhook():
                 resposta = requests.get(API_URL)
                 dados = resposta.text
                 enviar_mensagem(chat_id, f"🔥 *Seu teste está pronto!*\n\n{dados}")
-            except:
+            except Exception as e:
                 enviar_mensagem(chat_id, "❌ Erro ao gerar o teste. Tente novamente.")
+                print("Erro API:", e)
 
     return "ok"
 
