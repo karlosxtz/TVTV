@@ -4,7 +4,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-TELEGRAM_TOKEN = "8333600201:AAGXsPe3ilm8bwSwu8Rws5Lw6wtUZJ0mAD4"
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 API_URL = "https://fireplay.paneltop.online/api/chatbot/OALyoolW4w/ryJDzKWgeV"
 BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/"
 
@@ -13,9 +13,12 @@ def enviar_mensagem(chat_id, texto):
     payload = {"chat_id": chat_id, "text": texto, "parse_mode": "Markdown"}
     requests.post(url, json=payload)
 
-@app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
+@app.route("/webhook", methods=["POST"])
 def webhook():
     update = request.get_json()
+
+    if not update:
+        return "no update"
 
     if "message" in update:
         chat_id = update["message"]["chat"]["id"]
@@ -35,4 +38,5 @@ def webhook():
     return "ok"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
