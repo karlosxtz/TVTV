@@ -14,12 +14,26 @@ API_URL = "https://fireplay.paneltop.online/api/chatbot/OALyoolW4w/ryJDzKWgeV"
 BASE_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/"
 
 
+# ============================
+# FUNÇÃO PARA ENVIAR MENSAGEM
+# ============================
 def enviar_mensagem(chat_id, texto):
     url = BASE_URL + "sendMessage"
     payload = {"chat_id": chat_id, "text": texto, "parse_mode": "Markdown"}
     requests.post(url, json=payload)
 
 
+# ============================
+# ROTA PRINCIPAL (Render testa aqui)
+# ============================
+@app.route("/", methods=["GET"])
+def home():
+    return "Bot ativo! 🔥", 200
+
+
+# ============================
+# WEBHOOK
+# ============================
 @app.route("/webhook", methods=["POST"])
 def webhook():
     update = request.get_json()
@@ -40,8 +54,18 @@ def webhook():
         elif texto == "/teste":
             try:
                 resposta = requests.get(API_URL)
-                dados = resposta.text
+
+                # Caso a API retorne página HTML da Cloudflare
+                if "<html>" in resposta.text.lower():
+                    enviar_mensagem(
+                        chat_id, 
+                        "❌ O servidor da API retornou erro (Cloudflare / HTML). Tente novamente mais tarde."
+                    )
+                    return "ok"
+
+                dados = resposta.text.strip()
                 enviar_mensagem(chat_id, f"🔥 *Seu teste está pronto!*\n\n{dados}")
+
             except Exception as e:
                 enviar_mensagem(chat_id, "❌ Erro ao gerar o teste. Tente novamente.")
                 print("Erro API:", e)
@@ -49,6 +73,9 @@ def webhook():
     return "ok"
 
 
+# ============================
+# INICIAR SERVIDOR (Render)
+# ============================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
